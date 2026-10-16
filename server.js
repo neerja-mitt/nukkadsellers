@@ -27,12 +27,23 @@ async function dashboard(req, res, p) {
     const key = new URL(req.url, "http://x").searchParams.get("key") || "";
     if (!same(key, process.env.DASH_KEY)) { res.writeHead(403); return res.end("Wrong key."); }
     try {
-      const body = new URLSearchParams({ track: "events", ev: "selftest", page: "maker", sid: "selftest", src: "selftest", submitted_at: new Date().toISOString() });
-      const r = await fetch(process.env.DASH_FEED_URL || SCRIPT_URL, { method: "POST", body, redirect: "follow" });
-      const text = await r.text();
+      const U = process.env.DASH_FEED_URL || SCRIPT_URL;
+      const fields = { track: "events", ev: "selftest", page: "maker", sid: "selftest", src: "selftest", submitted_at: new Date().toISOString() };
+      const plain = (t) => t.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+      const tries = [
+        ["POST form body", () => fetch(U, { method: "POST", body: new URLSearchParams({ ...fields, variant: "a" }) })],
+        ["POST query only", () => fetch(U + "?" + new URLSearchParams({ ...fields, variant: "b" }), { method: "POST" })],
+        ["POST text body", () => fetch(U + "?" + new URLSearchParams({ ...fields, variant: "c" }), { method: "POST", headers: { "Content-Type": "text/plain" }, body: "x" })],
+        ["POST no redirect", () => fetch(U, { method: "POST", body: new URLSearchParams({ ...fields, variant: "d" }), redirect: "manual" })],
+        ["GET", () => fetch(U + "?key=nope")],
+      ];
+      let out = "";
+      for (const [name, go] of tries) {
+        try { const r = await go(); const t = await r.text(); out += name + ": " + r.status + " " + (r.headers.get("location") || r.url) + "\n  " + plain(t) + "\n\n"; }
+        catch (e) { out += name + ": failed " + e.message + "\n\n"; }
+      }
       res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
-      const plain = text.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      return res.end("status " + r.status + "\n" + r.url + "\n\n" + plain.slice(0, 2000));
+      return res.end(out);
     } catch (e) { res.writeHead(502); return res.end("Request failed: " + e.message); }
   }
   if (!authed(req)) { res.writeHead(401, { "WWW-Authenticate": 'Basic realm="Nukkad dashboard", charset="UTF-8"', "Content-Type": "text/plain" }); return res.end("Password needed."); }
