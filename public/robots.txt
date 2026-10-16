@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /ads/
 
 Sitemap: https://www.shopnukkad.live/sitemap.xml
