@@ -10,6 +10,10 @@ To update a page, replace the HTML file in public/ and redeploy.
 
 Build the pages (build_v2.py, build_thrift.py), then run `python3 publish.py`. It copies them into public/, moves photos into public/img/ and adds structured data from each page's FAQ.
 
-## Dashboard (shopnukkad.live/dashboard)
+## Applications, funnel and dashboard
 
-Password-protected funnel dashboard. Needs two Railway variables: DASH_PASSWORD (what you type to open it) and DASH_KEY (must match DASH_KEY in the Apps Script). Data comes from the "events" tab through the Apps Script's doGet. To change the page, edit dashboard/body.html or shell.html and run `python3 dashboard/build.py`.
+The server saves everything itself, on the Railway volume mounted at /data:
+- applications.jsonl: one line per application (from POST /api/apply)
+- events.jsonl: one line per funnel step, no answers (from POST /api/e)
+
+shopnukkad.live/dashboard shows the funnel and the applications, with a CSV download. It needs the Railway variable DASH_PASSWORD. To change it, edit dashboard/body.html, apps.html or shell.html and run `python3 dashboard/build.py`.
