@@ -31,7 +31,8 @@ async function dashboard(req, res, p) {
       const r = await fetch(process.env.DASH_FEED_URL || SCRIPT_URL, { method: "POST", body, redirect: "follow" });
       const text = await r.text();
       res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
-      return res.end("status " + r.status + "\n" + r.url + "\n\n" + text.slice(0, 3000));
+      const plain = text.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      return res.end("status " + r.status + "\n" + r.url + "\n\n" + plain.slice(0, 2000));
     } catch (e) { res.writeHead(502); return res.end("Request failed: " + e.message); }
   }
   if (!authed(req)) { res.writeHead(401, { "WWW-Authenticate": 'Basic realm="Nukkad dashboard", charset="UTF-8"', "Content-Type": "text/plain" }); return res.end("Password needed."); }
