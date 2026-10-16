@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Nukkad seller funnel</title>
+<link rel="icon" href="/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Mukta:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --color-bg:#ffffff; --color-panel:#f7f6f2; --color-fg:#16182b; --color-fg-muted:#5a5d72; --color-border-line:#e4e2dd;
+  --color-ok:#1f6a4a; --color-warn:#9a6b00; --color-bad:#c4291f;
+  --cds-chart-grid:#ecebe6; --cds-chart-muted:#d9d7d0; --cds-chart-axis:#c9c7c0; --cds-chart-reference:#5a5d72; --cds-chart-status-critical:#e2332a;
+  --cds-surface-popover:#ffffff; --cds-border:#e4e2dd; --cds-shadow-popover:0 6px 24px rgba(22,24,43,.12); --cds-text-secondary:#5a5d72;
+  --s1:#1f6a4a; --s2:#e0a21b;
+  --font-anthropic-sans:"Mukta","Segoe UI",system-ui,sans-serif; --font-anthropic-serif:"Archivo","Arial Black",Arial,sans-serif;
+  --cds-font-size-caption:13px; --cds-font-size-body:16px; --cds-font-size-heading:18px; --cds-font-size-title:34px; --cds-font-weight-medium:700;
+  --cds-gap-xs:4px; --cds-gap-sm:8px; --cds-gap-md:14px; --cds-gap-lg:24px; --cds-gap-xl:36px;
+  --cds-pad-xs:4px; --cds-pad-sm:8px; --cds-pad-md:12px; --cds-pad-lg:18px; --cds-pad-xl:28px;
+  --cds-radius:10px; --cds-dur-slow:.3s; --cds-ease-out:cubic-bezier(.2,.8,.2,1);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --color-bg:#12131f; --color-panel:#1b1d2c; --color-fg:#ecebf2; --color-fg-muted:#a3a5b8; --color-border-line:#2c2e40;
+  --color-ok:#4fb184; --color-warn:#e0b450; --color-bad:#ff6b62;
+  --cds-chart-grid:#26283a; --cds-chart-muted:#3a3d52; --cds-chart-axis:#3a3d52; --cds-chart-reference:#a3a5b8; --cds-chart-status-critical:#ff5a50;
+  --cds-surface-popover:#1f2132; --cds-border:#2c2e40; --cds-shadow-popover:0 6px 24px rgba(0,0,0,.4); --cds-text-secondary:#a3a5b8;
+  --s1:#4fb184; --s2:#f0b23a; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--color-bg);color:var(--color-fg);font:400 15px/1.5 var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
+#dash-root{max-width:1100px;margin:0 auto;padding:28px max(16px,env(safe-area-inset-right,0px)) 64px max(16px,env(safe-area-inset-left,0px))}
+.nf-title{font-weight:800!important;letter-spacing:-.02em}
+.nf-tile .big{font-weight:700!important}
+.dash-skeleton{color:transparent!important;background:var(--color-border-line);border-radius:6px;animation:sk 1.2s ease-in-out infinite alternate}
+@keyframes sk{from{opacity:.5}to{opacity:1}}
+.nf-bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13px;color:var(--color-fg-muted)}
+.nf-bar button{appearance:none;font:inherit;font-size:13px;border:1px solid var(--color-border-line);background:transparent;color:var(--color-fg);border-radius:999px;padding:3px 12px;cursor:pointer}
+.nf-err{color:var(--color-bad)}
+</style>
+<script src="/dashboard/d3.min.js"></script>
+<script>
+// A small stand-in for the Claude dashboard runtime, so the same page code runs here.
+(function () {
+  var loaders = {}, calcs = [], data = {}, subs = [], status = "loading", message = "";
+  var params = { page: "maker", period: "7d", source: "all" };
+  try { Object.assign(params, JSON.parse(localStorage.getItem("nk_dash_params") || "{}")); } catch (e) {}
+  function fire() { subs.forEach(function (fn) { try { fn(); } catch (e) { console.error(e); } }); }
+  window.dash = {
+    colors: ["var(--s1)", "var(--s2)", "#6b7bd6", "#c45ab3", "#3aa0a8", "#d07a3c", "#7d8a3a", "#8a6bd1"],
+    loader: function (id, o) { loaders[id] = o; },
+    calc: function (id, o) { calcs.push([id, o]); },
+    data: function (id) { var d = data[id]; return d ? { status: "ok", data: d, refreshing: false, meta: [] } : { status: status, data: [], message: message, meta: [] }; },
+    onData: function (fn) { subs.push(fn); fn(); },
+    params: function () { return Object.assign({}, params); },
+    setParams: function (p) { Object.assign(params, p); try { localStorage.setItem("nk_dash_params", JSON.stringify(params)); } catch (e) {} fire(); },
+    resetParams: function () { params = { page: "maker", period: "7d", source: "all" }; fire(); },
+    setLink: function (name) { try { history.replaceState(null, "", "#" + name); } catch (e) {} },
+    refresh: function () { load(); }
+  };
+  var updated = null;
+  function load() {
+    var bar = document.getElementById("nf-updated");
+    if (bar) bar.textContent = "Updating…";
+    fetch("/dashboard/data", { cache: "no-store", credentials: "same-origin" }).then(function (r) {
+      if (!r.ok) throw new Error("The data didn't load (" + r.status + ").");
+      return r.json();
+    }).then(function (answer) {
+      data = {};
+      data.events = loaders.events.fn({ answer: answer }).rows;
+      calcs.forEach(function (c) { data[c[0]] = c[1].fn.apply(null, c[1].inputs.map(function (i) { return data[i] || []; })); });
+      status = "ok"; message = ""; updated = new Date(); fire(); showBar();
+    }).catch(function (e) { data = {}; status = "error"; message = e.message; fire(); showBar(); });
+  }
+  function showBar() {
+    var head = document.querySelector(".nf-head"); if (!head) return;
+    var bar = document.getElementById("nf-bar");
+    if (!bar) {
+      bar = document.createElement("div"); bar.id = "nf-bar"; bar.className = "nf-bar";
+      var s = document.createElement("span"); s.id = "nf-updated"; bar.appendChild(s);
+      var b = document.createElement("button"); b.type = "button"; b.textContent = "Refresh"; b.onclick = load; bar.appendChild(b);
+      head.appendChild(bar);
+    }
+    var u = document.getElementById("nf-updated");
+    u.className = status === "error" ? "nf-err" : "";
+    u.textContent = status === "error" ? message : "Updated " + updated.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) + ". Refreshes every 5 minutes.";
+  }
+  document.addEventListener("DOMContentLoaded", function () { load(); setInterval(load, 5 * 60 * 1000); });
+  var w = innerWidth; addEventListener("resize", function () { if (innerWidth !== w) { w = innerWidth; fire(); } });
+})();
+</script>
+</head>
+<body>
+<div id="dash-root">
+{{BODY}}
+</div>
+</body>
+</html>

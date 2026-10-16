@@ -1,0 +1,489 @@
+<style>
+.nf{display:grid;gap:var(--cds-gap-lg);font-family:var(--font-anthropic-sans);font-variant-numeric:tabular-nums}
+.nf-head{display:grid;gap:var(--cds-gap-xs)}
+.nf-title{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0}
+.nf-take{margin:0;color:var(--color-fg-muted);font-size:var(--cds-font-size-body);max-width:70ch}
+.nf-take b{color:var(--color-fg);font-weight:600}
+.nf-controls{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm) var(--cds-gap-md);align-items:center}
+.nf-seg{display:inline-flex;border:1px solid var(--color-border-line);border-radius:var(--cds-radius);overflow:hidden}
+.nf-seg button{appearance:none;border:0;background:transparent;color:var(--color-fg-muted);font:inherit;font-size:var(--cds-font-size-caption);padding:var(--cds-pad-xs) var(--cds-pad-md);cursor:pointer}
+.nf-seg button+button{border-left:1px solid var(--color-border-line)}
+.nf-seg button[aria-pressed="true"]{background:var(--color-panel);color:var(--color-fg);font-weight:600}
+.nf-seg button:focus-visible,.nf-select:focus-visible{outline:2px solid var(--cds-chart-reference);outline-offset:1px}
+.nf-select{font:inherit;font-size:var(--cds-font-size-caption);padding:var(--cds-pad-xs) var(--cds-pad-sm);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:var(--color-bg);color:var(--color-fg)}
+.nf-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:var(--cds-gap-md)}
+.nf-tile,.nf-card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);min-width:0}
+.nf-tile{display:grid;gap:var(--cds-gap-xs);align-content:start}
+.nf-tile .lab{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.nf-tile .big{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);line-height:1.1}
+.nf-tile .sub{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.nf-card{display:grid;gap:var(--cds-gap-md);align-content:start}
+.nf-card h2{margin:0;font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
+.nf-card .note{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.nf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:var(--cds-gap-md)}
+.nf-funnel{display:grid;gap:2px;min-height:12rem}
+.nf-row{display:grid;grid-template-columns:minmax(8rem,15rem) minmax(0,1fr) 3.5rem 7.5rem;gap:var(--cds-gap-sm);align-items:center;padding:3px 0;font-size:var(--cds-font-size-caption)}
+.nf-row .name{min-width:0;color:var(--color-fg)}
+.nf-row .name .num{display:inline-block;width:1.6rem;color:var(--color-fg-muted)}
+.nf-row.cond .name{padding-left:1.6rem;color:var(--color-fg-muted)}
+.nf-row.cond .name::before{content:"↳ ";}
+.nf-row .track{height:14px;border-radius:4px;background:var(--cds-chart-grid);overflow:hidden}
+.nf-row .fill{height:100%;border-radius:4px;background:var(--cds-chart-muted)}
+.nf-row .n{text-align:right}
+.nf-row .left{text-align:right;color:var(--color-fg-muted)}
+.nf-row.worst .left{color:var(--color-bad);font-weight:600}
+.nf-row.head{color:var(--color-fg-muted);border-bottom:1px solid var(--color-border-line);padding-bottom:var(--cds-pad-xs)}
+.nf-row.edge{border-top:1px solid var(--color-border-line);margin-top:4px;padding-top:6px}
+.nf-empty{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.nf-table-wrap{overflow-x:auto}
+.nf-table{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption)}
+.nf-table th{text-align:right;font-weight:500;color:var(--color-fg-muted);padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line)}
+.nf-table td{text-align:right;padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line)}
+.nf-table th:first-child,.nf-table td:first-child{text-align:left;padding-left:0}
+.nf-chart{position:relative;min-height:220px}
+.nf-legend{display:flex;flex-wrap:wrap;gap:var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.nf-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.nf-tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);white-space:nowrap}
+.nf-tip .d{color:var(--cds-text-secondary)}
+.nf-foot{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);max-width:80ch}
+[data-dash-source-state=empty]{color:transparent}
+[data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+@media (max-width:640px){.nf-row{grid-template-columns:minmax(0,1fr) 3rem 5.5rem}.nf-row .track{grid-column:1/-1;grid-row:2}}
+</style>
+
+<div class="nf">
+  <header class="nf-head" id="overview">
+    <h1 class="nf-title">Seller page funnel</h1>
+    <p class="nf-take" id="takeaway"><span class="dash-skeleton">Loading visits</span></p>
+  </header>
+
+  <div class="nf-controls" id="filters">
+    <div class="nf-seg" role="group" aria-label="Page" id="f-page">
+      <button type="button" data-v="maker">Brands page</button>
+      <button type="button" data-v="thrift">Thrift page</button>
+    </div>
+    <div class="nf-seg" role="group" aria-label="Period" id="f-period">
+      <button type="button" data-v="today">Today</button>
+      <button type="button" data-v="7d">Last 7 days</button>
+      <button type="button" data-v="all">All time</button>
+    </div>
+    <select class="nf-select" id="f-source" aria-label="Where visitors came from">
+      <option value="all">All sources</option>
+      <option value="Meta ads">Meta ads</option>
+      <option value="Instagram">Instagram</option>
+      <option value="DMs">DMs</option>
+      <option value="Direct and other">Direct and other</option>
+    </select>
+  </div>
+
+  <section class="nf-tiles" id="headline">
+    <div class="nf-tile"><span class="lab">Visitors</span><span class="big dash-skeleton" id="t-visits">—</span><span class="sub">Browser sessions on the page</span></div>
+    <div class="nf-tile"><span class="lab">Started the form</span><span class="big dash-skeleton" id="t-started">—</span><span class="sub"><span id="t-started-r">—</span> of visitors</span></div>
+    <div class="nf-tile"><span class="lab">Sent an application</span><span class="big dash-skeleton" id="t-sent">—</span><span class="sub"><span id="t-sent-r">—</span> of those who started</span></div>
+    <div class="nf-tile"><span class="lab">Read past halfway</span><span class="big dash-skeleton" id="t-scroll">—</span><span class="sub"><span id="t-scroll-r">—</span> of visitors scrolled half the page</span></div>
+  </section>
+
+  <section class="nf-card" id="funnel">
+    <h2>Where people stop</h2>
+    <p class="note">Each row counts the visitors who reached that step. "Left here" is how many saw the question and never reached the next one. Indented rows only show for some answers, so they are left out of the drop count.</p>
+    <div class="nf-funnel" id="funnel-rows"></div>
+  </section>
+
+  <div class="nf-grid">
+    <section class="nf-card" id="daily">
+      <h2>Last 14 days</h2>
+      <div class="nf-legend" id="daily-legend"></div>
+      <div class="nf-chart" id="daily-chart" data-source="daily"></div>
+    </section>
+    <section class="nf-card" id="by-source">
+      <h2>By source</h2>
+      <p class="note">Meta ads are visits from a Facebook or Instagram link with Meta's click id. DMs use the ?src=dm link.</p>
+      <div class="nf-table-wrap">
+        <table class="nf-table" id="tbl-source" data-source="breakdown" data-row-key="page,period,dim,value">
+          <thead><tr><th data-field="value">Source</th><th data-field="visits">Visitors</th><th data-field="started">Started</th><th data-field="sent">Sent</th><th data-field="conversion">Visitor to sent</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="nf-card" id="by-device">
+      <h2>By device</h2>
+      <p class="note">Phone means a screen 700px wide or less.</p>
+      <div class="nf-table-wrap">
+        <table class="nf-table" id="tbl-device" data-source="breakdown" data-row-key="page,period,dim,value">
+          <thead><tr><th data-field="value">Device</th><th data-field="visits">Visitors</th><th data-field="started">Started</th><th data-field="sent">Sent</th><th data-field="conversion">Visitor to sent</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <p class="nf-foot">Tracking started on 16 October 2026. A visitor is one browser session; opening the page again in a new tab counts again. Only the steps reached are recorded, never the answers. Days are in India time.</p>
+</div>
+
+<script>
+dash.loader('events', {
+  description: 'The events tab as rows, one per tracked step, with columns named by the header row.',
+  fn: ({ answer }) => {
+    const a = typeof answer === 'string' ? JSON.parse(answer) : answer;
+    if (a && a.error) throw new Error(a.error.message || String(a.error));
+    const values = (a && a.values) || [];
+    const columns = values[0] || [];
+    const rows = values.slice(1).map((r) => Object.fromEntries(columns.map((c, i) => [c, r[i] == null ? '' : String(r[i])])));
+    return { columns, rows };
+  },
+});
+
+dash.calc('sessions', {
+  inputs: ['events'],
+  title: 'Visitor sessions',
+  description: 'One row per visitor session on each page, with the day (India time), where they came from, their device and every step they reached.',
+  fn: (events) => {
+    const when = (s) => {
+      let t = Date.parse(s);
+      if (isNaN(t)) t = Date.parse(String(s).replace(' ', 'T') + '+05:30');
+      return t;
+    };
+    const sourceOf = (src, ref) => {
+      src = String(src || '').toLowerCase(); ref = String(ref || '').toLowerCase();
+      if (src === 'dm') return 'DMs';
+      if (src === 'ig' || src === 'instagram') return 'Instagram';
+      if (src === 'facebook' || src === 'fb' || src === 'meta') return 'Meta ads';
+      if (!src && ref.includes('instagram')) return 'Instagram';
+      return 'Direct and other';
+    };
+    const by = new Map();
+    for (const e of events) {
+      if (!e.sid || !e.page) continue;
+      const id = e.page + '|' + e.sid;
+      const t = when(e.submitted_at);
+      let s = by.get(id);
+      if (!s) { s = { page: e.page, sid: e.sid, t: isNaN(t) ? 0 : t, src: e.src, ref: e.ref, device: e.device, steps: new Set() }; by.set(id, s); }
+      if (!isNaN(t) && (s.t === 0 || t < s.t)) s.t = t;
+      if (!s.src && e.src) s.src = e.src;
+      s.steps.add(e.ev === 'q' ? 'q:' + e.step : e.ev);
+    }
+    return [...by.values()].map((s) => ({
+      page: s.page,
+      sid: s.sid,
+      day: new Date(s.t + 19800000).toISOString().slice(0, 10),
+      source: sourceOf(s.src, s.ref),
+      device: s.device === 'mobile' ? 'Phone' : 'Laptop or desktop',
+      steps: [...s.steps].sort().join(' '),
+    }));
+  },
+});
+
+dash.calc('funnel', {
+  inputs: ['sessions'],
+  title: 'Funnel by step',
+  description: 'Visitors reaching each step of each page, for today, the last 7 days and all time, by source. "Left" is those who reached a step but not the next one everyone sees.',
+  fn: (sessions) => {
+    const STEPS = {
+      maker: [['view', 'Visited the page'], ['name', 'Name'], ['city', 'City'], ['brand', 'Brand name'], ['category', 'What they sell'], ['other', 'What else they sell', 1], ['craft', 'Regional craft'], ['docs', 'Registration and licences'], ['story', 'Their story'], ['link', 'Instagram or website'], ['where', 'Where they sell today'], ['markets', 'Which marketplaces', 1], ['live', 'Sold live before?'], ['livesales', 'Sales in a typical live', 1], ['livewhy', 'What held them back', 1], ['pain', 'Hardest part of selling online'], ['price', 'Price range'], ['help', 'How Nukkad could help'], ['frequency', 'How often they would go live'], ['phone', 'WhatsApp number'], ['submit', 'Sent the application']],
+      thrift: [['view', 'Visited the page'], ['name', 'Name'], ['brand', 'Store name'], ['city', 'City'], ['sells', 'What they sell'], ['kind', 'Kind of pieces'], ['story', 'About their store'], ['pieces', 'Pieces per show'], ['where', 'How they sell today'], ['live', 'Sold live before?'], ['livesales', 'Sales in a typical live', 1], ['livewhy', 'What held them back', 1], ['pain', 'Hardest part of selling online'], ['price', 'Price range'], ['link', 'Instagram handle'], ['docs', 'Registration'], ['help', 'How Nukkad could help'], ['frequency', 'How often they would go live'], ['phone', 'WhatsApp number'], ['submit', 'Sent the application']],
+    };
+    const today = new Date(Date.now() + 19800000).toISOString().slice(0, 10);
+    const weekAgo = new Date(Date.now() + 19800000 - 6 * 86400000).toISOString().slice(0, 10);
+    const inPeriod = { today: (d) => d === today, '7d': (d) => d >= weekAgo, all: () => true };
+    const SOURCES = ['all', 'Meta ads', 'Instagram', 'DMs', 'Direct and other'];
+    const has = (s, key) => key === 'view' ? true : key === 'submit' ? / submit( |$)/.test(' ' + s.steps) : (' ' + s.steps + ' ').includes(' q:' + key + ' ');
+    const out = [];
+    for (const page of Object.keys(STEPS)) for (const period of Object.keys(inPeriod)) for (const source of SOURCES) {
+      const group = sessions.filter((s) => s.page === page && inPeriod[period](s.day) && (source === 'all' || s.source === source));
+      const steps = STEPS[page];
+      const reached = steps.map(([key]) => group.filter((s) => has(s, key)).length);
+      const visits = reached[0];
+      const started = reached[1];
+      let num = 0;
+      steps.forEach(([key, label, cond], i) => {
+        let next = null;
+        if (!cond) for (let j = i + 1; j < steps.length; j++) if (!steps[j][2]) { next = j; break; }
+        const left = next === null ? null : reached[i] - reached[next];
+        if (!cond && key !== 'view' && key !== 'submit') num += 1;
+        out.push({
+          page, period, source, key, label, order: i, cond: cond ? 1 : 0,
+          num: !cond && key !== 'view' && key !== 'submit' ? num : null,
+          reached: reached[i],
+          of_visits: visits ? reached[i] / visits : null,
+          of_started: started && i > 0 ? reached[i] / started : null,
+          left,
+          left_share: left === null || !reached[i] ? null : left / reached[i],
+        });
+      });
+    }
+    return out;
+  },
+});
+
+dash.calc('scroll', {
+  inputs: ['sessions'],
+  title: 'Read past halfway',
+  description: 'Visitors who scrolled at least half of the page, by page, period and source.',
+  fn: (sessions) => {
+    const today = new Date(Date.now() + 19800000).toISOString().slice(0, 10);
+    const weekAgo = new Date(Date.now() + 19800000 - 6 * 86400000).toISOString().slice(0, 10);
+    const inPeriod = { today: (d) => d === today, '7d': (d) => d >= weekAgo, all: () => true };
+    const out = [];
+    for (const page of ['maker', 'thrift']) for (const period of Object.keys(inPeriod)) for (const source of ['all', 'Meta ads', 'Instagram', 'DMs', 'Direct and other']) {
+      const g = sessions.filter((s) => s.page === page && inPeriod[period](s.day) && (source === 'all' || s.source === source));
+      const n = g.filter((s) => (' ' + s.steps + ' ').includes(' scroll50 ')).length;
+      out.push({ page, period, source, scrolled: n, share: g.length ? n / g.length : null });
+    }
+    return out;
+  },
+});
+
+dash.calc('worst', {
+  inputs: ['funnel'],
+  title: 'Biggest drop in the form',
+  description: 'For each page, period and source, the question (seen by at least 5 visitors) where the largest share of people stopped.',
+  fn: (funnel) => {
+    const best = new Map();
+    for (const r of funnel) {
+      if (r.cond || r.key === 'view' || r.key === 'submit' || r.left_share === null || r.reached < 5) continue;
+      const id = r.page + '|' + r.period + '|' + r.source;
+      const b = best.get(id);
+      if (!b || r.left_share > b.left_share || (r.left_share === b.left_share && r.left > b.left)) best.set(id, r);
+    }
+    return [...best.values()].map((r) => ({ page: r.page, period: r.period, source: r.source, key: r.key, label: r.label, reached: r.reached, left: r.left, left_share: r.left_share }));
+  },
+});
+
+dash.calc('breakdown', {
+  inputs: ['sessions'],
+  title: 'By source and device',
+  description: 'Visitors, form starts and sent applications per source and per device, by page and period.',
+  fn: (sessions) => {
+    const today = new Date(Date.now() + 19800000).toISOString().slice(0, 10);
+    const weekAgo = new Date(Date.now() + 19800000 - 6 * 86400000).toISOString().slice(0, 10);
+    const inPeriod = { today: (d) => d === today, '7d': (d) => d >= weekAgo, all: () => true };
+    const out = [];
+    for (const page of ['maker', 'thrift']) for (const period of Object.keys(inPeriod)) for (const dim of ['source', 'device']) {
+      const g = sessions.filter((s) => s.page === page && inPeriod[period](s.day));
+      const values = [...new Set(g.map((s) => s[dim]))].sort();
+      for (const value of values) {
+        const v = g.filter((s) => s[dim] === value);
+        const started = v.filter((s) => (' ' + s.steps + ' ').includes(' q:name ')).length;
+        const sent = v.filter((s) => (' ' + s.steps + ' ').includes(' submit ')).length;
+        out.push({ page, period, dim, value, visits: v.length, started, sent, conversion: v.length ? sent / v.length : null });
+      }
+    }
+    return out;
+  },
+});
+
+dash.calc('daily', {
+  inputs: ['sessions'],
+  title: 'Visitors per day',
+  description: 'Visitors, form starts and sent applications per day for the last 14 days (India time), by page and source.',
+  fn: (sessions) => {
+    const days = [];
+    for (let i = 13; i >= 0; i--) days.push(new Date(Date.now() + 19800000 - i * 86400000).toISOString().slice(0, 10));
+    const out = [];
+    for (const page of ['maker', 'thrift']) for (const source of ['all', 'Meta ads', 'Instagram', 'DMs', 'Direct and other']) for (const day of days) {
+      const g = sessions.filter((s) => s.page === page && s.day === day && (source === 'all' || s.source === source));
+      out.push({
+        page, source, day, visits: g.length,
+        started: g.filter((s) => (' ' + s.steps + ' ').includes(' q:name ')).length,
+        sent: g.filter((s) => (' ' + s.steps + ' ').includes(' submit ')).length,
+      });
+    }
+    return out;
+  },
+});
+</script>
+
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const pct = d3.format('.0%');
+  const num = d3.format(',');
+  const PERIOD_WORDS = { today: 'today', '7d': 'in the last 7 days', all: 'since tracking started' };
+  const PAGE_WORDS = { maker: 'brands page', thrift: 'thrift page' };
+
+  const p = () => Object.assign({ page: 'maker', period: '7d', source: 'all' }, dash.params());
+  const enc = (v) => encodeURIComponent(v);
+  const where = (o) => Object.entries(o).map(([k, v]) => enc(k) + '=' + enc(v)).join('&');
+  const mark = (el, source, field, w) => { el.setAttribute('data-source', source); el.setAttribute('data-field', field); el.setAttribute('data-where', where(w)); };
+  const unskel = (...els) => els.forEach((e) => e && e.classList.remove('dash-skeleton'));
+
+  document.querySelectorAll('#f-page button, #f-period button').forEach((b) => b.addEventListener('click', () => {
+    const key = b.parentElement.id === 'f-page' ? 'page' : 'period';
+    dash.setParams({ [key]: b.dataset.v });
+  }));
+  $('#f-source').addEventListener('change', (e) => dash.setParams({ source: e.target.value }));
+
+  const failLine = (el) => {
+    el.replaceChildren();
+    const d = document.createElement('div');
+    d.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:8px;min-height:inherit;height:100%;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)';
+    const dot = document.createElement('span');
+    dot.style.cssText = 'width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad)';
+    d.append(dot, document.createTextNode('Failed to load'));
+    el.append(d);
+  };
+
+  function drawTiles(f, sc, ok) {
+    const P = p();
+    const base = { page: P.page, period: P.period, source: P.source };
+    const row = (key) => f.find((r) => r.page === P.page && r.period === P.period && r.source === P.source && r.key === key);
+    const v = row('view'), st = row('name'), se = row('submit');
+    const s = sc.find((r) => r.page === P.page && r.period === P.period && r.source === P.source);
+    const set = (id, text, src, field, w) => { const el = $(id); el.textContent = text; mark(el, src, field, w); };
+    if (!ok) { ['#t-visits', '#t-started', '#t-sent', '#t-scroll', '#t-started-r', '#t-sent-r', '#t-scroll-r'].forEach((id) => { $(id).textContent = '—'; }); return; }
+    unskel($('#t-visits'), $('#t-started'), $('#t-sent'), $('#t-scroll'));
+    set('#t-visits', v ? num(v.reached) : '—', 'funnel', 'reached', { ...base, key: 'view' });
+    set('#t-started', st ? num(st.reached) : '—', 'funnel', 'reached', { ...base, key: 'name' });
+    set('#t-started-r', st && st.of_visits != null ? pct(st.of_visits) : '—', 'funnel', 'of_visits', { ...base, key: 'name' });
+    set('#t-sent', se ? num(se.reached) : '—', 'funnel', 'reached', { ...base, key: 'submit' });
+    set('#t-sent-r', se && se.of_started != null ? pct(se.of_started) : '—', 'funnel', 'of_started', { ...base, key: 'submit' });
+    set('#t-scroll', s ? num(s.scrolled) : '—', 'scroll', 'scrolled', base);
+    set('#t-scroll-r', s && s.share != null ? pct(s.share) : '—', 'scroll', 'share', base);
+  }
+
+  function drawTakeaway(f, w, ok, status) {
+    const el = $('#takeaway');
+    el.replaceChildren();
+    if (!ok) { el.classList.toggle('dash-skeleton', status === 'loading'); if (status !== 'loading') el.textContent = 'The events tab did not load. Sources shows why.'; return; }
+    el.classList.remove('dash-skeleton');
+    const P = p();
+    const base = { page: P.page, period: P.period, source: P.source };
+    const row = (key) => f.find((r) => r.page === P.page && r.period === P.period && r.source === P.source && r.key === key);
+    const v = row('view'), st = row('name'), se = row('submit');
+    const worst = w.find((r) => r.page === P.page && r.period === P.period && r.source === P.source);
+    const b = (text, field, src, wh) => { const e = document.createElement('b'); e.textContent = text; mark(e, src, field, wh); return e; };
+    const t = (s) => document.createTextNode(s);
+    if (!v || !v.reached) { el.textContent = 'No visits to the ' + PAGE_WORDS[P.page] + ' ' + PERIOD_WORDS[P.period] + (P.source === 'all' ? '' : ' from ' + P.source) + ' yet.'; return; }
+    el.append(b(num(v.reached), 'reached', 'funnel', { ...base, key: 'view' }), t(' visitors on the ' + PAGE_WORDS[P.page] + ' ' + PERIOD_WORDS[P.period] + '. '),
+      b(pct(st.of_visits || 0), 'of_visits', 'funnel', { ...base, key: 'name' }), t(' started the form and '),
+      b(num(se.reached), 'reached', 'funnel', { ...base, key: 'submit' }), t(' sent it. '));
+    if (worst) el.append(t('The biggest drop in the form is at '), b(worst.label, 'label', 'worst', base), t(', where '), b(pct(worst.left_share), 'left_share', 'worst', base), t(' of people stop.'));
+    else if (st.reached) el.append(t('Too few people have started the form to say where it breaks.'));
+  }
+
+  function drawFunnel(f, ok, status) {
+    const box = $('#funnel-rows');
+    box.replaceChildren();
+    if (!ok) { if (status !== 'loading') failLine(box); return; }
+    const P = p();
+    const rows = f.filter((r) => r.page === P.page && r.period === P.period && r.source === P.source).sort((a, b) => a.order - b.order);
+    const visits = rows.length ? rows[0].reached : 0;
+    const worst = rows.filter((r) => !r.cond && r.key !== 'view' && r.key !== 'submit' && r.reached >= 5 && r.left_share != null)
+      .reduce((m, r) => (!m || r.left_share > m.left_share ? r : m), null);
+    const head = document.createElement('div');
+    head.className = 'nf-row head';
+    ['Step', '', 'People', 'Left here'].forEach((h, i) => { const s = document.createElement('span'); s.textContent = h; if (i === 1) s.className = 'track-h'; if (i > 1) s.style.textAlign = 'right'; head.append(s); });
+    if (window.matchMedia('(max-width:640px)').matches) head.children[1].remove();
+    box.append(head);
+    const base = { page: P.page, period: P.period, source: P.source };
+    for (const r of rows) {
+      const d = document.createElement('div');
+      d.className = 'nf-row ' + (r.cond ? 'cond' : 'main') + (worst && r.key === worst.key ? ' worst' : '') + (r.key === 'view' || r.key === 'submit' ? ' edge' : '');
+      d.id = 'step-' + r.key;
+      const name = document.createElement('span'); name.className = 'name';
+      if (r.num) { const n = document.createElement('span'); n.className = 'num'; n.textContent = r.num; name.append(n); }
+      name.append(document.createTextNode(r.label));
+      const track = document.createElement('div'); track.className = 'track';
+      const fill = document.createElement('div'); fill.className = 'fill';
+      fill.style.width = (visits ? Math.max(r.reached / visits * 100, r.reached ? 0.8 : 0) : 0) + '%';
+      fill.style.background = worst && r.key === worst.key ? 'var(--cds-chart-status-critical)' : r.cond ? 'var(--cds-chart-muted)' : dash.colors[0];
+      track.append(fill);
+      const n = document.createElement('span'); n.className = 'n'; n.textContent = num(r.reached);
+      mark(n, 'funnel', 'reached', { ...base, key: r.key });
+      const left = document.createElement('span'); left.className = 'left';
+      if (r.left != null && r.reached) {
+        left.textContent = num(r.left) + ' · ' + pct(r.left_share);
+        mark(left, 'funnel', 'left_share', { ...base, key: r.key });
+      } else left.textContent = '';
+      d.append(name, track, n, left);
+      box.append(d);
+    }
+  }
+
+  function drawTable(sel, b, dim, ok) {
+    const tb = $(sel + ' tbody');
+    tb.replaceChildren();
+    if (!ok) return;
+    const P = p();
+    const rows = b.filter((r) => r.page === P.page && r.period === P.period && r.dim === dim).sort((a, c) => c.visits - a.visits);
+    if (!rows.length) {
+      const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 5; td.className = 'nf-empty'; td.textContent = 'No visits in this period yet.'; tr.append(td); tb.append(tr); return;
+    }
+    for (const r of rows) {
+      const tr = document.createElement('tr');
+      tr.dataset.key = [r.page, r.period, r.dim, r.value].map(encodeURIComponent).join(',');
+      [r.value, num(r.visits), num(r.started), num(r.sent), r.conversion == null ? '—' : pct(r.conversion)].forEach((v) => { const td = document.createElement('td'); td.textContent = v; tr.append(td); });
+      tb.append(tr);
+    }
+  }
+
+  let tip;
+  function drawDaily(dd, ok, status) {
+    const box = $('#daily-chart');
+    box.replaceChildren();
+    const legend = $('#daily-legend');
+    legend.replaceChildren();
+    const series = [['visits', 'Visitors', 'var(--cds-chart-muted)'], ['started', 'Started the form', dash.colors[0]], ['sent', 'Sent', dash.colors[1]]];
+    series.forEach(([, l, c]) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = c; s.append(i, document.createTextNode(l)); legend.append(s); });
+    if (!ok) { if (status !== 'loading') failLine(box); return; }
+    const P = p();
+    const rows = dd.filter((r) => r.page === P.page && r.source === P.source).sort((a, b) => (a.day < b.day ? -1 : 1));
+    const W = Math.max(box.clientWidth, 280), H = 220;
+    const max = d3.max(rows, (r) => r.visits) || 0;
+    const y = d3.scaleLinear([0, Math.max(max, 4)], [H - 24, 10]).nice();
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Visitors, form starts and applications per day');
+    const ticks = y.ticks(4).filter((t) => Number.isInteger(t));
+    const tl = svg.append('g').selectAll('text').data(ticks).join('text').attr('x', 0).attr('y', (t) => y(t) + 4).attr('fill', 'var(--color-fg-muted)').attr('font-size', 11).text((t) => num(t));
+    let ml = 0; tl.each(function () { ml = Math.max(ml, this.getComputedTextLength()); });
+    ml += 8;
+    const x = d3.scaleBand(rows.map((r) => r.day), [ml, W - 4]).padding(0.25);
+    svg.insert('g', ':first-child').selectAll('line').data(ticks).join('line').attr('x1', ml).attr('x2', W - 4).attr('y1', (t) => y(t)).attr('y2', (t) => y(t)).attr('stroke', 'var(--cds-chart-grid)');
+    const fmt = d3.utcFormat('%b %-d');
+    const every = Math.ceil(rows.length / Math.max(1, Math.floor((W - ml) / 52)));
+    svg.append('g').selectAll('text').data(rows.filter((r, i) => i % every === (rows.length - 1) % every)).join('text')
+      .attr('x', (r) => x(r.day) + x.bandwidth() / 2).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').attr('font-size', 11).text((r) => fmt(new Date(r.day)));
+    const widths = [1, 0.62, 0.3];
+    series.forEach(([k, , c], si) => {
+      const bw = Math.min(x.bandwidth(), 32) * widths[si];
+      svg.append('g').selectAll('rect').data(rows).join('rect')
+        .attr('x', (r) => x(r.day) + (x.bandwidth() - bw) / 2).attr('width', bw)
+        .attr('y', (r) => y(r[k])).attr('height', (r) => Math.max(0, y(0) - y(r[k])))
+        .attr('rx', 3).style('fill', c);
+    });
+    if (!tip) { tip = document.createElement('div'); tip.className = 'nf-tip'; tip.hidden = true; }
+    box.append(tip);
+    svg.append('g').selectAll('rect').data(rows).join('rect')
+      .attr('x', (r) => x(r.day) - x.step() * x.paddingInner() / 2).attr('width', x.step()).attr('y', 0).attr('height', H - 20).attr('fill', 'transparent')
+      .on('mousemove', (ev, r) => {
+        tip.replaceChildren();
+        const d = document.createElement('div'); d.className = 'd'; d.textContent = fmt(new Date(r.day)); tip.append(d);
+        series.forEach(([k, l]) => { const line = document.createElement('div'); line.textContent = l + ': ' + num(r[k]); tip.append(line); });
+        tip.hidden = false;
+        const bx = box.getBoundingClientRect();
+        let left = ev.clientX - bx.left + 12; if (left + tip.offsetWidth > bx.width) left = ev.clientX - bx.left - tip.offsetWidth - 12;
+        tip.style.left = Math.max(0, left) + 'px'; tip.style.top = Math.max(0, ev.clientY - bx.top - 10) + 'px';
+      })
+      .on('mouseleave', () => { tip.hidden = true; });
+  }
+
+  dash.onData(() => {
+    const P = p();
+    document.querySelectorAll('#f-page button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === P.page)));
+    document.querySelectorAll('#f-period button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === P.period)));
+    $('#f-source').value = P.source;
+    const F = dash.data('funnel'), W = dash.data('worst'), S = dash.data('scroll'), B = dash.data('breakdown'), D = dash.data('daily');
+    const ev = dash.data('events');
+    const st = ev.status === 'ok' ? 'ok' : ev.status === 'loading' ? 'loading' : 'error';
+    const ok = (x) => x.status === 'ok' && Array.isArray(x.data);
+    drawTakeaway(ok(F) ? F.data : [], ok(W) ? W.data : [], ok(F) && ok(W), st);
+    drawTiles(ok(F) ? F.data : [], ok(S) ? S.data : [], ok(F) && ok(S));
+    drawFunnel(ok(F) ? F.data : [], ok(F), st);
+    drawTable('#tbl-source', ok(B) ? B.data : [], 'source', ok(B));
+    drawTable('#tbl-device', ok(B) ? B.data : [], 'device', ok(B));
+    drawDaily(ok(D) ? D.data : [], ok(D), st);
+  });
+
+  const named = document.getElementById(location.hash.slice(1));
+  if (named) setTimeout(() => { named.scrollIntoView(); dash.setLink(named.id); }, 400);
+})();
+</script>
