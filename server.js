@@ -31,11 +31,7 @@ async function dashboard(req, res, p) {
       const fields = { track: "events", ev: "selftest", page: "maker", sid: "selftest", src: "selftest", submitted_at: new Date().toISOString() };
       const plain = (t) => t.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
       const tries = [
-        ["POST form body", () => fetch(U, { method: "POST", body: new URLSearchParams({ ...fields, variant: "a" }) })],
-        ["POST query only", () => fetch(U + "?" + new URLSearchParams({ ...fields, variant: "b" }), { method: "POST" })],
-        ["POST text body", () => fetch(U + "?" + new URLSearchParams({ ...fields, variant: "c" }), { method: "POST", headers: { "Content-Type": "text/plain" }, body: "x" })],
-        ["POST no redirect", () => fetch(U, { method: "POST", body: new URLSearchParams({ ...fields, variant: "d" }), redirect: "manual" })],
-        ["GET", () => fetch(U + "?key=nope")],
+        ["GET save", () => fetch(U + "?" + new URLSearchParams({ ...fields, variant: "get" }))],
       ];
       let out = "";
       for (const [name, go] of tries) {

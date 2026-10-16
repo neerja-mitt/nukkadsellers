@@ -858,7 +858,7 @@ footer .wrap a{color:var(--green);font-weight:600}
     d.append("device", window.matchMedia && window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop");
     var ref = ""; try { ref = document.referrer ? new URL(document.referrer).hostname : ""; } catch(e){}
     d.append("ref", ref); d.append("submitted_at", new Date().toISOString());
-    try { fetch(FORM_ENDPOINT, {method:"POST", mode:"no-cors", credentials:"omit", body:d, keepalive:true}); } catch(e){}
+    try { fetch(FORM_ENDPOINT + "?" + d.toString(), {mode:"no-cors", credentials:"omit", keepalive:true}); } catch(e){}
   }
   track("view");
   (function(){
@@ -1008,7 +1008,7 @@ footer .wrap a{color:var(--green);font-weight:600}
     d.append("help", (A.help || []).join(", "));
     d.append("docs", A.docs || "");
     d.append("utm", utm); d.append("stage", stage); d.append("submitted_at", new Date().toISOString());
-    return fetch(FORM_ENDPOINT, {method:"POST", mode:"no-cors", body:d});
+    return fetch(FORM_ENDPOINT + "?" + d.toString(), {mode:"no-cors", credentials:"omit"});
   }
 
   function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -1043,7 +1043,7 @@ footer .wrap a{color:var(--green);font-weight:600}
       input.addEventListener("keydown", function(e){ if (e.key === "Enter") { e.preventDefault(); next(); } });
       field.appendChild(input);
     } else if (q.type === "long") {
-      input = document.createElement("textarea");
+      input = document.createElement("textarea"); input.maxLength = 1500;
       input.id = "q-input"; input.placeholder = q.ph || ""; input.value = A[q.k] || "";
       input.setAttribute("aria-labelledby","q-title");
       field.appendChild(input);
