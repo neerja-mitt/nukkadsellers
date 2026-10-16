@@ -18,7 +18,8 @@ for src, dst, url, name in PAGES:
     faqs = [(strip(q), strip(a)) for q, a in re.findall(r"<details><summary>(.*?)</summary><p>(.*?)</p></details>", s, re.S)]
     graph = [
         {"@type": "Organization", "@id": SITE + "/#org", "name": "Nukkad", "url": SITE + "/", "logo": SITE + "/icon-512.png",
-         "description": "Live shopping from India's homegrown brands and thrift stores.", "areaServed": "IN"},
+         "description": "Live shopping from India's homegrown brands and thrift stores.", "areaServed": "IN",
+         "sameAs": ["https://www.instagram.com/shopnukkad.live/"]},
         {"@type": "WebSite", "@id": SITE + "/#site", "url": SITE + "/", "name": "Nukkad", "inLanguage": "en-IN", "publisher": {"@id": SITE + "/#org"}},
         {"@type": "WebPage", "@id": url + "#page", "url": url, "name": title, "description": desc, "inLanguage": "en-IN",
          "isPartOf": {"@id": SITE + "/#site"}, "about": {"@id": SITE + "/#org"}, "primaryImageOfPage": SITE + ("/og-thrift.png" if "thrift" in url else "/og.png")},
