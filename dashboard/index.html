@@ -171,6 +171,81 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font:400 15px/1.5
     </select>
   </div>
 
+<style>
+.nf-apps .nf-table-wrap{max-height:420px;overflow:auto}
+.nf-apps thead th{position:sticky;top:0;background:var(--color-panel)}
+.nf-apps-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;justify-content:space-between}
+.nf-apps-head a{font-size:13px;color:var(--color-fg);border:1px solid var(--color-border-line);border-radius:999px;padding:3px 12px;text-decoration:none}
+.nf-apps tbody tr.r{cursor:pointer}
+.nf-apps tbody tr.r:hover td{background:var(--color-bg)}
+.nf-apps td,.nf-apps th{text-align:left!important;vertical-align:top}
+.nf-apps tr.d td{background:var(--color-bg);padding:12px}
+.nf-apps dl{display:grid;grid-template-columns:minmax(8rem,14rem) minmax(0,1fr);gap:6px 14px;margin:0}
+.nf-apps dt{color:var(--color-fg-muted)}
+.nf-apps dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+@media (max-width:640px){.nf-apps dl{grid-template-columns:1fr}.nf-apps .hide-s{display:none}}
+</style>
+<section class="nf-card nf-apps" id="applications">
+  <div class="nf-apps-head">
+    <h2 id="apps-title">Applications</h2>
+    <a href="/dashboard/applications.csv">Download all as spreadsheet (CSV)</a>
+  </div>
+  <p class="note">Newest first, for the page picked above. Tap a row to see every answer.</p>
+  <div class="nf-table-wrap">
+    <table class="nf-table">
+      <thead><tr><th>Received</th><th>Name</th><th>Brand or store</th><th class="hide-s">City</th><th>WhatsApp</th><th class="hide-s">Instagram or site</th></tr></thead>
+      <tbody id="apps-body"><tr><td colspan="6" class="nf-empty">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</section>
+<script>
+(function () {
+  var LABELS = { received_at: "Received", track: "Page", name: "Name", brand: "Brand or store", city: "City", phone: "WhatsApp", link: "Instagram or website", category: "What they sell", sells: "What they sell", other: "Something else", kind: "Kind of pieces", craft: "Regional craft", story: "Their story", docs: "Registration", where: "Where they sell today", markets: "Marketplaces", pieces: "Pieces per show", live: "Sold live before", livesales: "Sales in a typical live", livewhy: "What held them back", pain: "Hardest part", price: "Price range", help: "How Nukkad could help", frequency: "How often they'd go live", utm: "Came from" };
+  var SKIP = { submitted_at: 1, stage: 1, team: 1, entity: 1, different: 1, exday: 1, repeat: 1, restock: 1 };
+  var apps = null, open = {};
+  var fmt = function (s) { var d = new Date(s); return isNaN(d) ? s : d.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }); };
+  function load() {
+    fetch("/dashboard/applications", { cache: "no-store", credentials: "same-origin" }).then(function (r) { return r.json(); })
+      .then(function (a) { apps = a; draw(); }).catch(function () { apps = "error"; draw(); });
+  }
+  function cell(tr, text, cls) { var td = document.createElement("td"); td.textContent = text || ""; if (cls) td.className = cls; tr.appendChild(td); }
+  function draw() {
+    var body = document.getElementById("apps-body"); if (!body) return;
+    body.replaceChildren();
+    var page = (dash.params().page) || "maker";
+    var label = page === "thrift" ? "thrift page" : "brands page";
+    document.getElementById("apps-title").textContent = "Applications, " + label;
+    if (apps === null) return;
+    if (apps === "error") { var e = document.createElement("tr"); cell(e, "Applications didn't load. Try Refresh.", "nf-empty"); e.firstChild.colSpan = 6; body.appendChild(e); return; }
+    var rows = apps.filter(function (a) { return (a.track || "maker") === page; });
+    document.getElementById("apps-title").textContent = rows.length + (rows.length === 1 ? " application" : " applications") + ", " + label;
+    if (!rows.length) { var t = document.createElement("tr"); cell(t, "No applications yet.", "nf-empty"); t.firstChild.colSpan = 6; body.appendChild(t); return; }
+    rows.forEach(function (a, i) {
+      var id = a.received_at + "|" + a.phone;
+      var tr = document.createElement("tr"); tr.className = "r"; tr.tabIndex = 0;
+      cell(tr, fmt(a.received_at)); cell(tr, a.name); cell(tr, a.brand); cell(tr, a.city, "hide-s"); cell(tr, a.phone); cell(tr, a.link, "hide-s");
+      var toggle = function () { open[id] = !open[id]; draw(); };
+      tr.addEventListener("click", toggle); tr.addEventListener("keydown", function (ev) { if (ev.key === "Enter") toggle(); });
+      body.appendChild(tr);
+      if (open[id]) {
+        var d = document.createElement("tr"); d.className = "d"; var td = document.createElement("td"); td.colSpan = 6;
+        var dl = document.createElement("dl");
+        Object.keys(LABELS).concat(Object.keys(a).filter(function (k) { return !LABELS[k] && !SKIP[k]; })).forEach(function (k) {
+          if (SKIP[k] || a[k] == null || a[k] === "") return;
+          var dt = document.createElement("dt"); dt.textContent = LABELS[k] || k;
+          var dd = document.createElement("dd"); dd.textContent = k === "received_at" ? fmt(a[k]) : k === "track" ? (a[k] === "thrift" ? "Thrift page" : "Brands page") : a[k];
+          dl.appendChild(dt); dl.appendChild(dd);
+        });
+        td.appendChild(dl); d.appendChild(td); body.appendChild(d);
+      }
+    });
+  }
+  dash.onData(draw);
+  load(); setInterval(load, 5 * 60 * 1000);
+  document.addEventListener("click", function (e) { if (e.target && e.target.closest && e.target.closest("#nf-bar button")) load(); });
+})();
+</script>
+
   <section class="nf-tiles" id="headline">
     <div class="nf-tile"><span class="lab">Visitors</span><span class="big dash-skeleton" id="t-visits">—</span><span class="sub">Browser sessions on the page</span></div>
     <div class="nf-tile"><span class="lab">Started the form</span><span class="big dash-skeleton" id="t-started">—</span><span class="sub"><span id="t-started-r">—</span> of visitors</span></div>
@@ -580,78 +655,6 @@ dash.calc('daily', {
 
   const named = document.getElementById(location.hash.slice(1));
   if (named) setTimeout(() => { named.scrollIntoView(); dash.setLink(named.id); }, 400);
-})();
-</script>
-
-<style>
-.nf-apps{margin-top:var(--cds-gap-lg)}
-.nf-apps-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;justify-content:space-between}
-.nf-apps-head a{font-size:13px;color:var(--color-fg);border:1px solid var(--color-border-line);border-radius:999px;padding:3px 12px;text-decoration:none}
-.nf-apps tbody tr.r{cursor:pointer}
-.nf-apps tbody tr.r:hover td{background:var(--color-bg)}
-.nf-apps td,.nf-apps th{text-align:left!important;vertical-align:top}
-.nf-apps tr.d td{background:var(--color-bg);padding:12px}
-.nf-apps dl{display:grid;grid-template-columns:minmax(8rem,14rem) minmax(0,1fr);gap:6px 14px;margin:0}
-.nf-apps dt{color:var(--color-fg-muted)}
-.nf-apps dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
-@media (max-width:640px){.nf-apps dl{grid-template-columns:1fr}.nf-apps .hide-s{display:none}}
-</style>
-<section class="nf-card nf-apps" id="applications">
-  <div class="nf-apps-head">
-    <h2 id="apps-title">Applications</h2>
-    <a href="/dashboard/applications.csv">Download all as spreadsheet (CSV)</a>
-  </div>
-  <p class="note">Newest first, for the page picked above. Tap a row to see every answer.</p>
-  <div class="nf-table-wrap">
-    <table class="nf-table">
-      <thead><tr><th>Received</th><th>Name</th><th>Brand or store</th><th class="hide-s">City</th><th>WhatsApp</th><th class="hide-s">Instagram or site</th></tr></thead>
-      <tbody id="apps-body"><tr><td colspan="6" class="nf-empty">Loading…</td></tr></tbody>
-    </table>
-  </div>
-</section>
-<script>
-(function () {
-  var LABELS = { received_at: "Received", track: "Page", name: "Name", brand: "Brand or store", city: "City", phone: "WhatsApp", link: "Instagram or website", category: "What they sell", sells: "What they sell", other: "Something else", kind: "Kind of pieces", craft: "Regional craft", story: "Their story", docs: "Registration", where: "Where they sell today", markets: "Marketplaces", pieces: "Pieces per show", live: "Sold live before", livesales: "Sales in a typical live", livewhy: "What held them back", pain: "Hardest part", price: "Price range", help: "How Nukkad could help", frequency: "How often they'd go live", utm: "Came from" };
-  var SKIP = { submitted_at: 1, stage: 1, team: 1, entity: 1, different: 1, exday: 1, repeat: 1, restock: 1 };
-  var apps = null, open = {};
-  var fmt = function (s) { var d = new Date(s); return isNaN(d) ? s : d.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }); };
-  function load() {
-    fetch("/dashboard/applications", { cache: "no-store", credentials: "same-origin" }).then(function (r) { return r.json(); })
-      .then(function (a) { apps = a; draw(); }).catch(function () { apps = "error"; draw(); });
-  }
-  function cell(tr, text, cls) { var td = document.createElement("td"); td.textContent = text || ""; if (cls) td.className = cls; tr.appendChild(td); }
-  function draw() {
-    var body = document.getElementById("apps-body"); if (!body) return;
-    body.replaceChildren();
-    var page = (dash.params().page) || "maker";
-    document.getElementById("apps-title").textContent = "Applications, " + (page === "thrift" ? "thrift page" : "brands page");
-    if (apps === null) return;
-    if (apps === "error") { var e = document.createElement("tr"); cell(e, "Applications didn't load. Try Refresh.", "nf-empty"); e.firstChild.colSpan = 6; body.appendChild(e); return; }
-    var rows = apps.filter(function (a) { return (a.track || "maker") === page; });
-    if (!rows.length) { var t = document.createElement("tr"); cell(t, "No applications yet.", "nf-empty"); t.firstChild.colSpan = 6; body.appendChild(t); return; }
-    rows.forEach(function (a, i) {
-      var id = a.received_at + "|" + a.phone;
-      var tr = document.createElement("tr"); tr.className = "r"; tr.tabIndex = 0;
-      cell(tr, fmt(a.received_at)); cell(tr, a.name); cell(tr, a.brand); cell(tr, a.city, "hide-s"); cell(tr, a.phone); cell(tr, a.link, "hide-s");
-      var toggle = function () { open[id] = !open[id]; draw(); };
-      tr.addEventListener("click", toggle); tr.addEventListener("keydown", function (ev) { if (ev.key === "Enter") toggle(); });
-      body.appendChild(tr);
-      if (open[id]) {
-        var d = document.createElement("tr"); d.className = "d"; var td = document.createElement("td"); td.colSpan = 6;
-        var dl = document.createElement("dl");
-        Object.keys(LABELS).concat(Object.keys(a).filter(function (k) { return !LABELS[k] && !SKIP[k]; })).forEach(function (k) {
-          if (SKIP[k] || a[k] == null || a[k] === "") return;
-          var dt = document.createElement("dt"); dt.textContent = LABELS[k] || k;
-          var dd = document.createElement("dd"); dd.textContent = k === "received_at" ? fmt(a[k]) : k === "track" ? (a[k] === "thrift" ? "Thrift page" : "Brands page") : a[k];
-          dl.appendChild(dt); dl.appendChild(dd);
-        });
-        td.appendChild(dl); d.appendChild(td); body.appendChild(d);
-      }
-    });
-  }
-  dash.onData(draw);
-  load(); setInterval(load, 5 * 60 * 1000);
-  document.addEventListener("click", function (e) { if (e.target && e.target.closest && e.target.closest("#nf-bar button")) load(); });
 })();
 </script>
 
