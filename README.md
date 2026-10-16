@@ -1,7 +1,7 @@
 # Nukkad pages
 
-- public/index.html: makers and brands page (shopnukkad.live)
-- public/thrift/index.html: thrift page (shopnukkad.live/thrift)
+- public/index.html: makers and brands page (www.shopnukkad.live)
+- public/thrift/index.html: thrift page (www.shopnukkad.live/thrift)
 - server.js: a small Node server with no dependencies. Railway runs `npm start`.
 
 To update a page, replace the HTML file in public/ and redeploy.
