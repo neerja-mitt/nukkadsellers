@@ -1,0 +1,9 @@
+{
+  "name": "nukkad-pages",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nukkad seller pages: shopnukkad.live and shopnukkad.live/thrift",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
