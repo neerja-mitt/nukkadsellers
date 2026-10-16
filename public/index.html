@@ -68,6 +68,10 @@ p{margin:0}
 header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px}
 .mark{font-family:var(--display);font-weight:900;font-stretch:118%;font-size:28px;letter-spacing:-.03em;line-height:1;color:var(--ink);display:flex;align-items:center;gap:7px;text-decoration:none}
 .mark i{width:10px;height:10px;border-radius:50%;background:var(--live);display:inline-block}
+@keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(226,51,42,.55)}70%{box-shadow:0 0 0 .45em rgba(226,51,42,0)}100%{box-shadow:0 0 0 0 rgba(226,51,42,0)}}
+.mark i{animation:livepulse 2s ease-out infinite}
+@media (prefers-reduced-motion:reduce){.mark i{animation:none}}
+
 
 /* hero */
 .hero .wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:40px;align-items:center;padding-block:28px 72px}
