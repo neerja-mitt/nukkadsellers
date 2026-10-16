@@ -1,0 +1,16 @@
+# Nukkad
+
+> Nukkad is a live shopping platform for India. Homegrown brands, makers, small businesses, thrift stores and vintage curators go live from their shop, studio or home, show their pieces, answer buyers' questions, and sell to buyers across India. Applications are open for the first sellers, and applying is free.
+
+## Seller pages
+
+- [Sell as a homegrown brand or maker](https://www.shopnukkad.live/): for small Indian brands, Instagram shops, makers, family businesses and exhibition sellers. Categories include sarees and handloom, clothing, kidswear and toys, jewellery, bags and accessories, footwear, home and decor, ceramics and tableware, beauty, food and pantry (with an FSSAI licence), and stationery, art and gifts.
+- [Sell as a thrift or vintage store](https://www.shopnukkad.live/thrift): for thrift stores, vintage curators and resellers of pre-loved clothing, bags, silver, home pieces and collectibles. Sellers can run live auctions with a starting price, sell at fixed prices, or mix both. No fakes or copies of branded designs.
+
+## Key facts
+
+- Sellers go live with just a phone. No studio is needed, and sellers don't have to show their face.
+- Sellers can speak any language they sell best in, such as Hindi, Gujarati, Tamil, Bengali or English.
+- Nukkad takes a share of what sells. There is no fee to apply.
+- Shortlisted applicants have a short video call before their first show.
+- Nukkad is built in Mumbai.

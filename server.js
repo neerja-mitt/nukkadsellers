@@ -5,7 +5,7 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "public");
 const PORT = process.env.PORT || 3000;
-const TYPES = { ".html": "text/html; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".txt": "text/plain" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".txt": "text/plain; charset=utf-8", ".xml": "application/xml; charset=utf-8", ".webp": "image/webp" };
 
 http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split("?")[0]);
@@ -22,7 +22,7 @@ http.createServer((req, res) => {
       });
       return;
     }
-    res.writeHead(200, { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": "public, max-age=300" });
+    res.writeHead(200, { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": p.startsWith("/img/") ? "public, max-age=31536000, immutable" : "public, max-age=300" });
     res.end(data);
   });
 }).listen(PORT, () => console.log("Nukkad pages on port " + PORT));
