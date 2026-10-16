@@ -19,6 +19,11 @@
 <link rel="canonical" href="https://www.shopnukkad.live/thrift">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta property="og:locale" content="en_IN">
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1781641293034340');fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1781641293034340&ev=PageView&noscript=1" alt=""></noscript>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..900&family=Mukta:wght@400;500;600;700&display=swap">
@@ -891,7 +896,7 @@ footer .wrap a{color:var(--green);font-weight:600}
       box.appendChild(close);
       wrapEl.appendChild(box);
       close.focus();
-      try { if (window.fbq) window.fbq("track", "Lead", { content_category: A.category }); } catch(e){}
+      try { if (window.fbq) window.fbq("track", "Lead", { content_category: [].concat(A.sells || []).join(", ") }); } catch(e){}
     }).catch(function(){
       if (go) { go.disabled = false; go.textContent = "Send application"; }
       document.getElementById("q-err").textContent = "That didn't go through. Check your connection and try again.";
@@ -903,6 +908,7 @@ footer .wrap a{color:var(--green);font-weight:600}
     opener = document.activeElement;
     if (submitted) { step = 0; A = {}; submitted = false; }
     sheet.hidden = false; document.body.classList.add("sheet-open");
+    try { if (window.fbq && !window.__nkStarted) { window.__nkStarted = true; window.fbq("trackCustom", "StartApplication"); } } catch(e){}
     render();
   }
   function closeSheet(){
