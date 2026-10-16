@@ -858,8 +858,7 @@ footer .wrap a{color:var(--green);font-weight:600}
     d.append("device", window.matchMedia && window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop");
     var ref = ""; try { ref = document.referrer ? new URL(document.referrer).hostname : ""; } catch(e){}
     d.append("ref", ref); d.append("submitted_at", new Date().toISOString());
-    try { if (navigator.sendBeacon && navigator.sendBeacon(FORM_ENDPOINT, d)) return; } catch(e){}
-    try { fetch(FORM_ENDPOINT, {method:"POST", mode:"no-cors", body:d, keepalive:true}); } catch(e){}
+    try { fetch(FORM_ENDPOINT, {method:"POST", mode:"no-cors", credentials:"omit", body:d, keepalive:true}); } catch(e){}
   }
   track("view");
   (function(){

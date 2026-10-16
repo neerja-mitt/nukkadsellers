@@ -65,7 +65,7 @@ http.createServer((req, res) => {
       });
       return;
     }
-    res.writeHead(200, { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": p.startsWith("/img/") ? "public, max-age=31536000, immutable" : "public, max-age=300" });
+    res.writeHead(200, { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": p.startsWith("/img/") ? "public, max-age=31536000, immutable" : path.extname(file) === ".html" ? "no-cache" : "public, max-age=300" });
     res.end(data);
   });
 }).listen(PORT, () => console.log("Nukkad pages on port " + PORT));
