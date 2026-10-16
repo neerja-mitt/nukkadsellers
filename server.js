@@ -22,6 +22,18 @@ function authed(req) {
 }
 async function dashboard(req, res, p) {
   if (!process.env.DASH_PASSWORD || !process.env.DASH_KEY) { res.writeHead(503, { "Content-Type": "text/plain" }); return res.end("Dashboard not set up yet: add DASH_PASSWORD and DASH_KEY in Railway."); }
+  if (p === "/dashboard/selftest") {
+    // Sends one test event to the Apps Script and shows its reply. Needs ?key=DASH_KEY.
+    const key = new URL(req.url, "http://x").searchParams.get("key") || "";
+    if (!same(key, process.env.DASH_KEY)) { res.writeHead(403); return res.end("Wrong key."); }
+    try {
+      const body = new URLSearchParams({ track: "events", ev: "selftest", page: "maker", sid: "selftest", src: "selftest", submitted_at: new Date().toISOString() });
+      const r = await fetch(process.env.DASH_FEED_URL || SCRIPT_URL, { method: "POST", body, redirect: "follow" });
+      const text = await r.text();
+      res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
+      return res.end("status " + r.status + "\n" + r.url + "\n\n" + text.slice(0, 3000));
+    } catch (e) { res.writeHead(502); return res.end("Request failed: " + e.message); }
+  }
   if (!authed(req)) { res.writeHead(401, { "WWW-Authenticate": 'Basic realm="Nukkad dashboard", charset="UTF-8"', "Content-Type": "text/plain" }); return res.end("Password needed."); }
   const priv = { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow" };
   if (p === "/dashboard/data") {
