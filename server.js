@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 
 // Private dashboard at /dashboard. Set DASH_PASSWORD and DASH_KEY in Railway's Variables.
 const DASH_DIR = path.join(__dirname, "dashboard");
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwq63eTFkjBp91Unjwkm6f8Me8XCUNo016-QrC-vD-jmI5lJkHGSanIoFEX0PHqiFVz/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzpjgFfIlyYfiOgR86i-rqNqp24_saCZnL-mKxINhipMGxNUdQU9dcuqB6POYRIrqON/exec";
 let cache = { at: 0, body: null };
 function same(a, b) { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); }
 function authed(req) {
