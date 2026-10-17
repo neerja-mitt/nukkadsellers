@@ -16,4 +16,4 @@ The server saves everything itself, on the Railway volume mounted at /data:
 - applications.jsonl: one line per application (from POST /api/apply)
 - events.jsonl: one line per funnel step, no answers (from POST /api/e)
 
-shopnukkad.live/dashboard shows the funnel and the applications, with a CSV download. It needs the Railway variable DASH_PASSWORD. To change it, edit dashboard/body.html, apps.html or shell.html and run `python3 dashboard/build.py`.
+shopnukkad.live/dashboard shows the funnel and the applications, with a CSV download. Deleting an application from the dashboard hides it (its id goes into deleted.jsonl); the original line stays in applications.jsonl. Visits tagged src=claudetest or selftest are left out of the funnel. It needs the Railway variable DASH_PASSWORD. To change it, edit dashboard/body.html, apps.html or shell.html and run `python3 dashboard/build.py`.

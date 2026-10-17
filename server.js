@@ -4,6 +4,7 @@
 // Storage: two append-only files on the Railway volume (mounted at /data):
 //   applications.jsonl  one line per application
 //   events.jsonl        one line per funnel step (no answers)
+//   deleted.jsonl       applications deleted from the dashboard (hidden, not erased)
 //
 // Railway variables: DASH_PASSWORD (to open /dashboard). DATA_DIR is optional (default /data).
 const http = require("http");
@@ -21,6 +22,8 @@ try { fs.mkdirSync(DATA_DIR, { recursive: true }); fs.accessSync(DATA_DIR, fs.co
 catch (e) { DATA_DIR = path.join(__dirname, "data"); fs.mkdirSync(DATA_DIR, { recursive: true }); console.warn("No volume at /data. Saving to " + DATA_DIR + ", which is lost on redeploy."); }
 const APPS = path.join(DATA_DIR, "applications.jsonl");
 const EVENTS = path.join(DATA_DIR, "events.jsonl");
+const DELETED = path.join(DATA_DIR, "deleted.jsonl");   // ids of deleted applications (kept so a delete can be undone by hand)
+const TEST_SOURCES = { claudetest: 1, selftest: 1 };
 const EVENT_COLS = ["submitted_at", "page", "ev", "step", "n", "cond", "sid", "src", "campaign", "content", "device", "ref"];
 
 function readBody(req, limit) {
@@ -39,6 +42,10 @@ function fields(body, max) {
 function readLines(file) {
   try { return fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map((l) => { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean); }
   catch (e) { return []; }
+}
+function liveApps() {
+  const gone = new Set(readLines(DELETED).map((d) => d.id));
+  return readLines(APPS).filter((a) => !gone.has(a.received_at));
 }
 function send(res, code, type, body, extra) { res.writeHead(code, { "Content-Type": type, ...(extra || {}) }); res.end(body); }
 
@@ -85,13 +92,22 @@ function dashboard(req, res, p) {
   if (!authed(req)) return send(res, 401, "text/plain", "Password needed.", { "WWW-Authenticate": 'Basic realm="Nukkad dashboard", charset="UTF-8"' });
   const priv = { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow" };
   if (p === "/dashboard/data") {
-    const rows = readLines(EVENTS).map((r) => EVENT_COLS.map((k) => r[k] || ""));
+    const rows = readLines(EVENTS).filter((r) => !TEST_SOURCES[r.src]).map((r) => EVENT_COLS.map((k) => r[k] || ""));
     return send(res, 200, "application/json; charset=utf-8", JSON.stringify({ values: [EVENT_COLS].concat(rows) }), priv);
   }
-  if (p === "/dashboard/applications") return send(res, 200, "application/json; charset=utf-8", JSON.stringify(readLines(APPS).reverse()), priv);
+  if (p === "/dashboard/applications") return send(res, 200, "application/json; charset=utf-8", JSON.stringify(liveApps().reverse()), priv);
   if (p === "/dashboard/applications.csv") {
     const day = new Date(Date.now() + 19800000).toISOString().slice(0, 10);
-    return send(res, 200, "text/csv; charset=utf-8", csv(readLines(APPS)), { ...priv, "Content-Disposition": 'attachment; filename="nukkad-applications-' + day + '.csv"' });
+    return send(res, 200, "text/csv; charset=utf-8", csv(liveApps()), { ...priv, "Content-Disposition": 'attachment; filename="nukkad-applications-' + day + '.csv"' });
+  }
+  if (p === "/dashboard/applications/delete") {
+    if (req.method !== "POST") return send(res, 405, "text/plain", "POST only");
+    return readBody(req, 2048).then((b) => {
+      const id = new URLSearchParams(b).get("id") || "";
+      if (!readLines(APPS).some((a) => a.received_at === id)) return send(res, 404, "application/json", '{"ok":false}', priv);
+      fs.appendFileSync(DELETED, JSON.stringify({ id, deleted_at: new Date().toISOString() }) + "\n");
+      send(res, 200, "application/json", '{"ok":true}', priv);
+    }).catch(() => send(res, 400, "text/plain", "bad"));
   }
   const file = p === "/dashboard/d3.min.js" ? "d3.min.js" : "index.html";
   fs.readFile(path.join(DASH_DIR, file), (err, data) => {

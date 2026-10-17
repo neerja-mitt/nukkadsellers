@@ -183,6 +183,9 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font:400 15px/1.5
 .nf-apps dl{display:grid;grid-template-columns:minmax(8rem,14rem) minmax(0,1fr);gap:6px 14px;margin:0}
 .nf-apps dt{color:var(--color-fg-muted)}
 .nf-apps dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.nf-del{margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--color-fg-muted)}
+.nf-del button{appearance:none;font:inherit;font-size:13px;border:1px solid var(--color-border-line);background:transparent;color:var(--color-bad);border-radius:999px;padding:3px 12px;cursor:pointer}
+.nf-del button.sure{background:var(--color-bad);color:#fff;border-color:var(--color-bad)}
 @media (max-width:640px){.nf-apps dl{grid-template-columns:1fr}.nf-apps .hide-s{display:none}}
 </style>
 <section class="nf-card nf-apps" id="applications">
@@ -236,7 +239,20 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg);font:400 15px/1.5
           var dd = document.createElement("dd"); dd.textContent = k === "received_at" ? fmt(a[k]) : k === "track" ? (a[k] === "thrift" ? "Thrift page" : "Brands page") : a[k];
           dl.appendChild(dt); dl.appendChild(dd);
         });
-        td.appendChild(dl); d.appendChild(td); body.appendChild(d);
+        td.appendChild(dl);
+        var del = document.createElement("div"); del.className = "nf-del";
+        var btn = document.createElement("button"); btn.type = "button"; btn.textContent = "Delete application";
+        var msg = document.createElement("span");
+        btn.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          if (!btn.classList.contains("sure")) { btn.classList.add("sure"); btn.textContent = "Yes, delete it"; msg.textContent = "Tap again to confirm."; return; }
+          btn.disabled = true; msg.textContent = "Deleting…";
+          fetch("/dashboard/applications/delete", { method: "POST", credentials: "same-origin", body: new URLSearchParams({ id: a.received_at }) })
+            .then(function (r) { if (!r.ok) throw new Error(); delete open[id]; apps = apps.filter(function (x) { return x.received_at !== a.received_at; }); draw(); })
+            .catch(function () { btn.disabled = false; msg.textContent = "That didn't work. Try again."; });
+        });
+        del.appendChild(btn); del.appendChild(msg); td.appendChild(del);
+        d.appendChild(td); body.appendChild(d);
       }
     });
   }
